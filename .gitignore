@@ -1,0 +1,8 @@
+*.pyc
+.idea
+local_settings.py
+db.sqlite3
+venv/
+
+# for keeping Udi sane (It should acyually be in git):
+Pipfile.lock
