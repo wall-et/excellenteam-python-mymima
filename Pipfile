@@ -10,6 +10,8 @@ django = "*"
 django-extensions = "*"
 ipython = "*"
 jupyter = "*"
+bs4 = "*"
+requests = "*"
 
 [requires]
 python_version = "3.7"
