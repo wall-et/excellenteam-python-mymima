@@ -1,53 +1,9 @@
 from bs4 import BeautifulSoup
 import requests
 import re
+# from mymima import settings
 from facts import models
 
-# artist_collection = set()
-# page_link = "https://www.mima.co.il/artist_page.php?artist_id=19"
-# page_response = requests.get(page_link, timeout=5)
-# page_content = BeautifulSoup(page_response.content, "html.parser")
-#
-# paragraphs = page_content.find_all("p")
-# for p in paragraphs:
-#     artist_name = p.find("font",attrs={"size":"+5"})
-#     if artist_name:
-#         print(artist_name.text)
-#         artist_collection.add(artist_name.text)
-
-# page_link = "https://www.mima.co.il/artist_letter.php?let=%D7%90"
-# page_response = requests.get(page_link, timeout=5)
-# page_content = BeautifulSoup(page_response.content, "html.parser")
-#
-# artists = page_content.find_all("a",attrs={"href":re.compile(r'^artist_page')})
-# for a in artists:
-#     print(a.text)
-#     print(a['href'])
-
-
-# def get_artists_by_letters_pages(main_page_link,letter_page_name):
-#     # page_link = "https://www.mima.co.il/"
-#     page_response = requests.get(main_page_link, timeout=5)
-#     page_content = BeautifulSoup(page_response.content, "html.parser")
-#
-#     letters = page_content.find_all("a", attrs={"href": re.compile(rf'^{letter_page_name}')})
-#     for let in letters:
-#         # print(a.text)
-#         # print(a['href'])
-#         letters_pages.add(let['href'])
-
-# def get_artist_from_letter_page(letter_link,artist_page_name):
-#     page_response = requests.get(letter_link, timeout=5)
-#     page_content = BeautifulSoup(page_response.content, "html.parser")
-#
-#     artists = page_content.find_all("a",attrs={"href":re.compile(rf'^{artist_page_name}')})
-#     for a in artists:
-#         # print(a.text)
-#         artists_names.add(a.text)
-#         artists_pages[re.search('=([0-9]*)',a['href']).group(1)] = a['href']
-#         # artists_pages.add(,(a['href']))
-        # print(a['href'])
-        # print(re.search('=([0-9]*)',a['href']).group(1))
 
 # def get_sub_pages_from_link(link,sub_page_name):
 #     info = []
@@ -79,6 +35,21 @@ def get_sub_pages_from_link(link,re_sub_page_name):
         # print(page)
     return info
 
+facts_re = re.compile("#CCFFCC|#EDF3FE")
+
+def get_facts(song_url):
+    page_response = requests.get(song_url, timeout=5)
+    page_content = BeautifulSoup(page_response.content, "html.parser")
+    facts = page_content.find_all("tr", attrs={"bgcolor": facts_re})
+    clean_facts = []
+    for fact in facts:
+        # print(fact.text)
+        clean_facts.append({
+        'text':fact.text,
+        'publisher':fact.find("font").text if fact.find("font") else None
+     })
+    return clean_facts
+
 
 site_url = "https://www.mima.co.il/"
 
@@ -93,8 +64,38 @@ songs_pages = []
 song_re = re.compile(rf'^fact_page')
 i = 0
 for artist in artist_pages:
-    # print(i)
-    # i+=1
-    artist['songs_list'] = get_sub_pages_from_link(site_url + artist['link'],song_re)
-    # songs_pages.extend(get_sub_pages_from_link(site_url + artist['link'],song_re))
+    print(i)
+    i+=1
+    ar = models.Artist.objects.create(
+                    full_name=ar['name'])
+    ar.save()
+    # artist['songs_list'] = get_sub_pages_from_link(site_url + artist['link'],song_re)
+    songs = get_sub_pages_from_link(site_url + artist['link'],song_re)
+    for song in songs:
+        so = models.Song.objects.create(
+                        title=song['name'],
+                        artist=ar)
+        so.save()
+        facts = get_facts(song['link'])
+        for fact in facts:
+            fa = models.Fact.objects.create(
+                            publisher_name=fact['publisher'],
+                            text=fact['text'],
+                            song=so)
+
+    songs_pages.extend(get_sub_pages_from_link(site_url + artist['link'],song_re))
 print(len(songs_pages))
+
+#
+# facts_re = re.compile("#CCFFCC|#EDF3FE")
+# song_url = "https://mima.co.il/fact_page.php?song_id=25"
+# page_response = requests.get(song_url, timeout=5)
+# page_content = BeautifulSoup(page_response.content, "html.parser")
+# facts = page_content.find_all("tr", attrs={"bgcolor": facts_re})
+# for fact in facts:
+#     # print(fact.find("font"))
+#     print({
+#         'text':fact.text,
+#         'publisher':fact.find("font").text if fact.find("font") else None
+#      })
+
