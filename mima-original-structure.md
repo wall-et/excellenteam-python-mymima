@@ -2,28 +2,26 @@
 
 ## Pages
 * Home page: https://www.mima.co.il/
-* XXX page: https://www.mima.co.il/xxxxx?yyy=zzzz
-* XXX page: https://www.mima.co.il/xxxxx?yyy=zzzz
-* XXX page: https://www.mima.co.il/xxxxx?yyy=zzzz
-* XXX page: https://www.mima.co.il/xxxxx?yyy=zzzz
-* XXX page: https://www.mima.co.il/xxxxx?yyy=zzzz
+* Artists by letter page: https://www.mima.co.il/artist_letter.php?let=xxx
+* Songs by letter page: https://www.mima.co.il/song_letter.php?let=xxx
+* Single artist page: https://www.mima.co.il/artist_page.php?artist_id=xxx
+* Single song page: https://www.mima.co.il/fact_page.php?song_id=xxx
+* Search all page: https://www.mima.co.il/search_result.php
+
 
 ## Entities and Relationships
 
-### Entity1
-* property1 (type)
-* property2 (type)
-* property3 (type)
-* property4 (type)
+### Artist
+* artist_id (INT PRIMARY KEY)
+* full_name (VARCHAR)
 
-### Entity2
-* property1 (type)
-* property2 (type)
-* property3 (type)
-* property4 (type)
+### Song
+* song_id (INT PRIMARY KEY)
+* artist_id (INT)
+* title (VARCHAR)
 
-### Entity3
-* property1 (type)
-* property2 (type)
-* property3 (type)
-* property4 (type)
+### Fact
+* fact_id (INT PRIMARY KEY)
+* song_id (INT)
+* text (TEXT)
+* publisher_name (VARCHAR)
