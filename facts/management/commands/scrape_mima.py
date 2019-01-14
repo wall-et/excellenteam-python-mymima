@@ -40,9 +40,9 @@ class Command(BaseCommand):
         return clean_facts
 
     def handle(self, *args, **options):
-        # Artist.objects.all().delete()
-        # Song.objects.all().delete()
-        # Fact.objects.all().delete()
+        Artist.objects.all().delete()
+        Song.objects.all().delete()
+        Fact.objects.all().delete()
 
         site_url = "https://www.mima.co.il/"
 
