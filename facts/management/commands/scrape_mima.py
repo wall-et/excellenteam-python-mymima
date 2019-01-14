@@ -29,7 +29,7 @@ class Command(BaseCommand):
     def get_facts(self,song_url):
         page_response = requests.get(song_url, timeout=5)
         page_content = BeautifulSoup(page_response.content, "html.parser")
-        facts = page_content.find_all("tr", attrs={"bgcolor": facts_re})
+        facts = page_content.find_all("tr", attrs={"bgcolor": self.facts_re})
         clean_facts = []
         for fact in facts:
             # print(fact.text)
@@ -40,10 +40,10 @@ class Command(BaseCommand):
         return clean_facts
 
     def handle(self, *args, **options):
+        # Artist.objects.all().delete()
+        # Song.objects.all().delete()
+        # Fact.objects.all().delete()
 
-        print("hello")
-        # # Expense.objects.all().delete()
-        #
         site_url = "https://www.mima.co.il/"
 
         letters_pages = self.get_sub_pages_from_link(site_url, re.compile(rf'^artist_letter'))
@@ -60,7 +60,7 @@ class Command(BaseCommand):
             print(i)
             i += 1
             ar = Artist.objects.create(
-                full_name=ar['name'])
+                full_name=artist['name'])
             ar.save()
             # artist['songs_list'] = get_sub_pages_from_link(site_url + artist['link'],song_re)
             songs = self.get_sub_pages_from_link(site_url + artist['link'], song_re)
@@ -69,12 +69,13 @@ class Command(BaseCommand):
                     title=song['name'],
                     artist=ar)
                 so.save()
-                facts = self.get_facts(song['link'])
+                facts = self.get_facts(site_url + song['link'])
                 for fact in facts:
                     fa = Fact.objects.create(
                         publisher_name=fact['publisher'],
                         text=fact['text'],
                         song=so)
+                    fa.save()
 
             # songs_pages.extend(get_sub_pages_from_link(site_url + artist['link'], song_re))
         # print(len(songs_pages))
