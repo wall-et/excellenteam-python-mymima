@@ -13,3 +13,7 @@ By Efrat Traube.
 * Run:
 
         pipenv install
+        
+        pipenv shell
+        
+        python manage.py scrape_mima #and wait a long long time
