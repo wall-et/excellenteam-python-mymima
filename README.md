@@ -15,5 +15,4 @@ By Efrat Traube.
         pipenv install
         pipenv shell
         python manage.py migrate
-        python manage.py makemigrations
-        python manage.py scrape_mima #and wait a long long time
+        python manage.py scrape_mima #and wait for a long long time

@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from bs4 import BeautifulSoup
 import requests
 import re
-from facts.models import Artist,Song,Fact
+from facts.models import Artist, Song, Fact
 
 
 class Command(BaseCommand):
@@ -10,8 +10,10 @@ class Command(BaseCommand):
 
     re_param = re.compile('=([0-9\W]*)')
     facts_re = re.compile("#CCFFCC|#EDF3FE")
+    inner_text_re = re.compile("<td>(.*)<br\/>")
+    font_text_re = re.compile('<font.* נכתב ע"י (.*) <\/')
 
-    def get_sub_pages_from_link(self,link, re_sub_page_name):
+    def get_sub_pages_from_link(self, link, re_sub_page_name):
         info = []
         page_response = requests.get(link, timeout=5)
         page_content = BeautifulSoup(page_response.content, "html.parser")
@@ -25,17 +27,18 @@ class Command(BaseCommand):
             # print(page)
         return info
 
-
-    def get_facts(self,song_url):
+    def get_facts(self, song_url):
         page_response = requests.get(song_url, timeout=5)
         page_content = BeautifulSoup(page_response.content, "html.parser")
         facts = page_content.find_all("tr", attrs={"bgcolor": self.facts_re})
         clean_facts = []
         for fact in facts:
             # print(fact.text)
+            t = self.inner_text_re.search(repr(fact))
+            f = self.font_text_re.search(repr(fact))
             clean_facts.append({
-                'text': fact.text,
-                'publisher': fact.find("font").text if fact.find("font") else None
+                'text': t.group(1) if t else fact.text,
+                'publisher': f.group(1) if f else None
             })
         return clean_facts
 
@@ -47,13 +50,11 @@ class Command(BaseCommand):
         site_url = "https://www.mima.co.il/"
 
         letters_pages = self.get_sub_pages_from_link(site_url, re.compile(rf'^artist_letter'))
-        print(len(letters_pages))
         artist_pages = []
         artist_re = re.compile(rf'^artist_page')
         for letter in letters_pages:
             artist_pages.extend(self.get_sub_pages_from_link(site_url + letter['link'], artist_re))
-        print(len(artist_pages))
-        # songs_pages = []
+
         song_re = re.compile(rf'^fact_page')
         i = 0
         for artist in artist_pages:
@@ -62,20 +63,22 @@ class Command(BaseCommand):
             ar = Artist.objects.create(
                 full_name=artist['name'])
             ar.save()
-            # artist['songs_list'] = get_sub_pages_from_link(site_url + artist['link'],song_re)
+
             songs = self.get_sub_pages_from_link(site_url + artist['link'], song_re)
             for song in songs:
-                so = Song.objects.create(
-                    title=song['name'],
-                    artist=ar)
+                so = ar.song_set.create(title=song['name'])
+                # so = Song.objects.create(
+                #     title=song['name'],
+                #     artist=ar)
                 so.save()
                 facts = self.get_facts(site_url + song['link'])
                 for fact in facts:
-                    fa = Fact.objects.create(
+                    fa = so.fact_set.create(
                         publisher_name=fact['publisher'],
-                        text=fact['text'],
-                        song=so)
+                        text=fact['text'])
+                    # fa = Fact.objects.create(
+                    #     publisher_name=fact['publisher'],
+                    #     text=fact['text'],
+                    #     song=so)
                     fa.save()
 
-            # songs_pages.extend(get_sub_pages_from_link(site_url + artist['link'], song_re))
-        # print(len(songs_pages))
